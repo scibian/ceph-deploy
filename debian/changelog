@@ -1,3 +1,9 @@
+ceph-deploy (1.5.36sci9u1) scibian9; urgency=medium
+
+  * rebuild scibian9 
+
+ -- Nicolas Meaux <nicolas-externe.meaux@edf.fr>  Wed, 18 Jul 2018 18:22:54 +0200
+
 ceph-deploy (1.5.36sci8u1) scibian8; urgency=medium
 
   * rebuild scibian8
