@@ -1,3 +1,9 @@
+ceph-deploy (1.5.36-1sci9u1) scibian9; urgency=medium
+
+  * add remoto lib ceph_deploy/lib/vendor/ 
+
+ -- Nicolas Meaux <nicolas-externe.meaux@edf.fr>  Thu, 19 Jul 2018 11:48:12 +0200
+
 ceph-deploy (1.5.36sci9u1) scibian9; urgency=medium
 
   * rebuild scibian9 
