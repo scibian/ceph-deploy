@@ -36,6 +36,7 @@ def detect_components(args, distro):
 
     * ceph
     * ceph-mon
+    * ceph-mgr
     * ceph-osd
     * ceph-mds
 
@@ -55,6 +56,7 @@ def detect_components(args, distro):
         'install_rgw': 'ceph-radosgw',
         'install_mds': 'ceph-mds',
         'install_mon': 'ceph-mon',
+        'install_mgr': 'ceph-mgr',
         'install_common': 'ceph-common',
         'install_tests': 'ceph-test',
     }
@@ -174,6 +176,7 @@ def install(args):
                 args.adjust_repos,
                 components=components,
                 gpgcheck=gpgcheck,
+                args=args
             )
 
         # Detect and install custom repos here if needed
@@ -189,6 +192,7 @@ def install(args):
                 args.adjust_repos,
                 components=components,
                 gpgcheck = gpgcheck,
+                args=args
             )
 
         # Check the ceph version we just installed
@@ -468,12 +472,12 @@ def make(parser):
         help='install a bleeding edge build from Git branch\
                 or tag (default: %(default)s)',
     )
-    version.add_argument(
+    parser.add_argument(
         '--dev-commit',
         nargs='?',
         action=StoreVersion,
         metavar='COMMIT',
-        help='install a bleeding edge build from Git commit',
+        help='install a bleeding edge build from Git commit (defaults to master branch)',
     )
 
     version.set_defaults(
@@ -488,6 +492,13 @@ def make(parser):
         dest='install_mon',
         action='store_true',
         help='install the mon component only',
+    )
+
+    parser.add_argument(
+        '--mgr',
+        dest='install_mgr',
+        action='store_true',
+        help='install the mgr component only',
     )
 
     parser.add_argument(

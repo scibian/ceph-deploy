@@ -16,6 +16,8 @@ def platform_information(_linux_distribution=None):
     distro, release, codename = linux_distribution()
     if not codename and 'debian' in distro.lower():  # this could be an empty string in Debian
         debian_codenames = {
+            '10': 'buster',
+            '9': 'stretch',
             '8': 'jessie',
             '7': 'wheezy',
             '6': 'squeeze',
@@ -31,6 +33,10 @@ def platform_information(_linux_distribution=None):
                 codename = minor
             else:
                 codename = major
+    if not codename and 'oracle' in distro.lower(): # this could be an empty string in Oracle linux
+        codename = 'oracle'
+    if not codename and 'virtuozzo linux' in distro.lower(): # this could be an empty string in Virtuozzo linux
+        codename = 'virtuozzo'
 
     return (
         str(distro).rstrip(),
@@ -54,9 +60,19 @@ def write_sources_list(url, codename, filename='ceph.list', mode=0o644):
     write_file(repo_path, content.encode('utf-8'), mode)
 
 
+def write_sources_list_content(content, filename='ceph.list', mode=0o644):
+    """add deb repo to /etc/apt/sources.list.d/ from content"""
+    repo_path = os.path.join('/etc/apt/sources.list.d', filename)
+    if not isinstance(content, str):
+        content = content.decode('utf-8')
+    write_file(repo_path, content.encode('utf-8'), mode)
+
+
 def write_yum_repo(content, filename='ceph.repo'):
     """add yum repo file in /etc/yum.repos.d/"""
     repo_path = os.path.join('/etc/yum.repos.d', filename)
+    if not isinstance(content, str):
+        content = content.decode('utf-8')
     write_file(repo_path, content.encode('utf-8'))
 
 

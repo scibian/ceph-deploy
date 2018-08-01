@@ -31,6 +31,10 @@ class TestNormalized(object):
         result = hosts._normalized_distro_name('RedHatEnterpriseLinux')
         assert result == 'redhat'
 
+    def test_get_virtuozzo(self):
+        result = hosts._normalized_distro_name('Virtuozzo Linux')
+        assert result == 'virtuozzo'
+
 
 class TestNormalizeRelease(object):
 
@@ -389,6 +393,10 @@ class TestGetDistro(object):
         result = hosts._get_distro('Scientific')
         assert result.__name__.endswith('centos')
 
+    def test_get_oracle(self):
+        result = hosts._get_distro('Oracle Linux Server')
+        assert result.__name__.endswith('centos')
+
     def test_get_redhat(self):
         result = hosts._get_distro('RedHat')
         assert result.__name__.endswith('centos')
@@ -407,3 +415,7 @@ class TestGetDistro(object):
     def test_get_mint(self):
         result = hosts._get_distro('LinuxMint')
         assert result.__name__.endswith('debian')
+
+    def test_get_virtuozzo(self):
+        result = hosts._get_distro('Virtuozzo Linux')
+        assert result.__name__.endswith('centos')
