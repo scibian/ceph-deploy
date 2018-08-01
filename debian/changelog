@@ -1,3 +1,9 @@
+ceph-deploy (1.5.39-0sci9u1) scibian9; urgency=medium
+
+  * rebuild scibian9.
+
+ -- Thomas HAMEL <thomas-externe.hamel@edf.fr>  Wed, 01 Aug 2018 15:45:31 +0200
+
 ceph-deploy (1.5.36-1sci9u1) scibian9; urgency=medium
 
   * add remoto lib ceph_deploy/lib/vendor/ 
