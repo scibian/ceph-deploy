@@ -187,7 +187,9 @@ def prepare_disk(
         fs_type,
         dmcrypt,
         dmcrypt_dir,
-        storetype):
+        storetype,
+        block_wal,
+        block_db):
     """
     Run on osd node, prepares a data disk for use.
     """
@@ -204,6 +206,13 @@ def prepare_disk(
         if dmcrypt_dir is not None:
             args.append('--dmcrypt-key-dir')
             args.append(dmcrypt_dir)
+    if storetype == 'bluestore':
+        if block_wal:
+            args.append('--block.wal')
+            args.append(block_wal)
+        if block_db:
+            args.append('--block.db')
+            args.append(block_db)
     if storetype:
         args.append('--' + storetype)
     args.extend([
@@ -315,6 +324,8 @@ def prepare(args, cfg, activate_prepared_disk):
             storetype = None
             if args.bluestore:
                 storetype = 'bluestore'
+            if args.filestore:
+                storetype = 'filestore'
 
             prepare_disk(
                 distro.conn,
@@ -328,6 +339,8 @@ def prepare(args, cfg, activate_prepared_disk):
                 dmcrypt=args.dmcrypt,
                 dmcrypt_dir=args.dmcrypt_key_dir,
                 storetype=storetype,
+                block_wal=args.block_wal,
+                block_db=args.block_db
             )
 
             # give the OSD a few seconds to start
@@ -695,9 +708,24 @@ def make(parser):
         help='directory where dm-crypt keys are stored',
         )
     osd_create.add_argument(
+        '--filestore',
+        action='store_true', default=None,
+        help='filestore objectstore',
+        )
+    osd_create.add_argument(
         '--bluestore',
         action='store_true', default=None,
         help='bluestore objectstore',
+        )
+    osd_create.add_argument(
+        '--block-db',
+        default=None,
+        help='bluestore block.db path'
+        )
+    osd_create.add_argument(
+        '--block-wal',
+        default=None,
+        help='bluestore block.wal path'
         )
     osd_create.add_argument(
         'disk',
@@ -706,10 +734,14 @@ def make(parser):
         type=colon_separated,
         help='host and disk to prepare',
         )
-
     osd_prepare = osd_parser.add_parser(
         'prepare',
         help='Prepare a disk for use as Ceph OSD by formatting/partitioning disk'
+        )
+    osd_prepare.add_argument(
+        '--filestore',
+        action='store_true', default=None,
+        help='filestore objectstore',
         )
     osd_prepare.add_argument(
         '--zap-disk',
@@ -740,6 +772,16 @@ def make(parser):
         '--bluestore',
         action='store_true', default=None,
         help='bluestore objectstore',
+        )
+    osd_prepare.add_argument(
+        '--block-db',
+        default=None,
+        help='bluestore block.db path'
+        )
+    osd_prepare.add_argument(
+        '--block-wal',
+        default=None,
+        help='bluestore block.wal path'
         )
     osd_prepare.add_argument(
         'disk',
@@ -830,6 +872,21 @@ def make_disk(parser):
         '--bluestore',
         action='store_true', default=None,
         help='bluestore objectstore',
+        )
+    disk_prepare.add_argument(
+        '--filestore',
+        action='store_true', default=None,
+        help='filestore objectstore',
+        )
+    disk_prepare.add_argument(
+        '--block-db',
+        default=None,
+        help='bluestore block.db path'
+        )
+    disk_prepare.add_argument(
+        '--block-wal',
+        default=None,
+        help='bluestore block.wal path'
         )
     disk_prepare.add_argument(
         'disk',

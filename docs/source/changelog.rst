@@ -4,6 +4,47 @@ Changelog
 1.5
 ---
 
+1.5.39
+^^^^^^
+1-Sep-2017
+
+* Remove ``--cluster`` options, default to ``ceph`` always
+* Add ``--filestore`` since ``ceph-disk`` defaults to bluestore
+* Start testing against Python 3.5
+* Support Debian 9 and 10 intalls
+* Better handling on package conflicts when upgrading/re-installing
+
+
+1.5.38
+^^^^^^
+19-May-2017
+
+* Allow unsigned deb packages from mirrors
+* Detect systemd before sysvinit in centos
+* Fix UnboundLocalError when installing in debian with custom repo flags
+* gatherkeys to give mgr "allow * " permissions
+* specify block.db and block.wal for bluestore
+* be able to install ceph-mgr
+* bootstrap mgr keys
+* cleanup mds key creation
+* Virtuozzo Linux support
+* update osd and mds caps
+
+
+1.5.37
+^^^^^^
+03-Jan-2017
+
+* Use the ``--cluster`` flag on monitor commands (defaulting to 'ceph' if
+  unspecfied)
+* After adding a monitor, ensure it is started regardless of init system
+* Allow Oracle Linux Server to be deployed to.
+* Fix issue when calling gatherkeys where a log argument was missing
+* Use the new development services for installation (from chacra.ceph.com and
+  shaman.ceph.com URLs)
+* Try to decode bytes only on Python 3 when writing files on remote hosts
+
+
 1.5.36
 ^^^^^^
 29-Aug-2016

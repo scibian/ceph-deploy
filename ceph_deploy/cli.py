@@ -6,7 +6,7 @@ import os
 import sys
 
 import ceph_deploy
-from ceph_deploy import exc, validate
+from ceph_deploy import exc
 from ceph_deploy.util import log
 from ceph_deploy.util.decorators import catches
 
@@ -67,12 +67,6 @@ def get_parser():
         '--overwrite-conf',
         action='store_true',
         help='overwrite an existing conf file on remote host (if present)',
-        )
-    parser.add_argument(
-        '--cluster',
-        metavar='NAME',
-        help='name of the cluster',
-        type=validate.alphanumeric,
         )
     parser.add_argument(
         '--ceph-conf',

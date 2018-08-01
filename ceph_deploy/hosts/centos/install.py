@@ -1,14 +1,17 @@
+import logging
 from ceph_deploy.util import templates
 from ceph_deploy.lib import remoto
 from ceph_deploy.hosts.common import map_components
 from ceph_deploy.util.paths import gpg
+from ceph_deploy.util import net
 
 
+LOG = logging.getLogger(__name__)
 NON_SPLIT_PACKAGES = ['ceph-osd', 'ceph-mon', 'ceph-mds']
 
 
 def rpm_dist(distro):
-    if distro.normalized_name in ['redhat', 'centos', 'scientific'] and distro.normalized_release.int_major >= 6:
+    if distro.normalized_name in ['redhat', 'centos', 'scientific', 'oracle', 'virtuozzo'] and distro.normalized_release.int_major >= 6:
         return 'el' + distro.normalized_release.major
     return 'el6'
 
@@ -32,7 +35,7 @@ def repository_url_part(distro):
     if distro.normalized_release.int_major >= 6:
         if distro.normalized_name == 'redhat':
             return 'rhel' + distro.normalized_release.major
-        if distro.normalized_name in ['centos', 'scientific']:
+        if distro.normalized_name in ['centos', 'scientific', 'oracle', 'virtuozzo']:
             return 'el' + distro.normalized_release.major
 
     return 'el6'
@@ -46,7 +49,6 @@ def install(distro, version_kind, version, adjust_repos, **kw):
 
     gpgcheck = kw.pop('gpgcheck', 1)
     logger = distro.conn.logger
-    release = distro.release
     machine = distro.machine_type
     repo_part = repository_url_part(distro)
     dist = rpm_dist(distro)
@@ -76,12 +78,22 @@ def install(distro, version_kind, version, adjust_repos, **kw):
             elif version_kind == 'testing':
                 url = 'https://download.ceph.com/rpm-testing/{repo}/'.format(repo=repo_part)
 
+            # remove any old ceph-release package from prevoius release
             remoto.process.run(
                 distro.conn,
                 [
-                    'rpm',
-                    '-Uvh',
-                    '--replacepkgs',
+                    'yum',
+                    'remove',
+                    '-y',
+                    'ceph-release'
+                ],
+            )
+            remoto.process.run(
+                distro.conn,
+                [
+                    'yum',
+                    'install',
+                    '-y',
                     '{url}noarch/ceph-release-1-0.{dist}.noarch.rpm'.format(url=url, dist=dist),
                 ],
             )
@@ -89,17 +101,23 @@ def install(distro, version_kind, version, adjust_repos, **kw):
         elif version_kind in ['dev', 'dev_commit']:
             logger.info('skipping install of ceph-release package')
             logger.info('repo file will be created manually')
+            shaman_url = 'https://shaman.ceph.com/api/repos/ceph/{version}/{sha1}/{distro}/{distro_version}/repo/?arch={arch}'.format(
+                distro=distro.normalized_name,
+                distro_version=distro.normalized_release.major,
+                version=kw['args'].dev,
+                sha1=kw['args'].dev_commit or 'latest',
+                arch=machine
+                )
+            LOG.debug('fetching repo information from: %s' % shaman_url)
+            content = net.get_chacra_repo(shaman_url)
             mirror_install(
                 distro,
-                'http://gitbuilder.ceph.com/ceph-rpm-centos{release}-{machine}-basic/{sub}/{version}/'.format(
-                    release=release.split(".", 1)[0],
-                    machine=machine,
-                    sub='ref' if version_kind == 'dev' else 'sha1',
-                    version=version),
-                gpg.url(key),
+                '',  # empty repo_url
+                None,  # no need to use gpg here, repos are unsigned
                 adjust_repos=True,
                 extra_installs=False,
                 gpgcheck=gpgcheck,
+                repo_content=content
             )
 
         else:
@@ -125,15 +143,17 @@ def mirror_install(distro, repo_url, gpg_url, adjust_repos, extra_installs=True,
     distro.packager.clean()
 
     if adjust_repos:
-        distro.packager.add_repo_gpg_key(gpg_url)
+        if gpg_url:
+            distro.packager.add_repo_gpg_key(gpg_url)
 
         ceph_repo_content = templates.ceph_repo.format(
             repo_url=repo_url,
             gpg_url=gpg_url,
             gpgcheck=gpgcheck,
         )
+        content = kw.get('repo_content', ceph_repo_content)
 
-        distro.conn.remote_module.write_yum_repo(ceph_repo_content)
+        distro.conn.remote_module.write_yum_repo(content)
         # set the right priority
         if distro.packager.name == 'yum':
             distro.packager.install('yum-plugin-priorities')
